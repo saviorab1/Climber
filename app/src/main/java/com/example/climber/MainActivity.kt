@@ -1,5 +1,6 @@
 package com.example.climber
 
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -9,6 +10,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
+    private val KEY_CURRENT_HOLD = "current_hold"
+    private val KEY_HAS_FALLEN = "has_fallen"
+    
     private var score = 0
     private var currentHold = 0
     private var hasFallen = false
@@ -32,12 +36,24 @@ class MainActivity : AppCompatActivity() {
         fallButton = findViewById(R.id.fall)
         val resetButton = findViewById<Button>(R.id.reset)
 
+        // Restore state after rotation
+        savedInstanceState?.let { bundle ->
+            currentHold = bundle.getInt(KEY_CURRENT_HOLD, 0)
+            hasFallen = bundle.getBoolean(KEY_HAS_FALLEN, false)
+            score = calculateScore()
+            updateScoreDisplay()
+            updateButtonStates()
+            updateBackgroundColor()
+        }
+
         // Score increase when the Climb button is clicked
         climbButton.setOnClickListener {
             if (!hasFallen && currentHold < 9) {
                 currentHold++
-                updateScore()
+                score = calculateScore()
+                updateScoreDisplay()
                 updateButtonStates()
+                updateBackgroundColor()
             }
         }
 
@@ -45,23 +61,34 @@ class MainActivity : AppCompatActivity() {
         fallButton.setOnClickListener {
             if (currentHold > 0 && currentHold < 9 && !hasFallen) {
                 hasFallen = true
-                // Set the condition that if score is less than 3, it becomes 0
+                score = calculateScore()
+                //If score less than 3 then reduce it to 0 else just deduct 3 from it
                 score = if (score < 3) 0 else score - 3
-                updateScore()
+                updateScoreDisplay()
                 updateButtonStates()
+                updateBackgroundColor()
             }
         }
 
         // Score reset to 0 when the Reset button is clicked
         resetButton.setOnClickListener {
-            score = 0
             currentHold = 0
             hasFallen = false
-            updateScore()
+            score = 0
+            updateScoreDisplay()
             updateButtonStates()
+            updateBackgroundColor()
         }
 
         updateButtonStates()
+        updateBackgroundColor()
+    }
+
+    // Function to keep the state even after rotation
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_CURRENT_HOLD, currentHold)
+        outState.putBoolean(KEY_HAS_FALLEN, hasFallen)
     }
 
     // Function to calculate score based on the current hold
@@ -81,15 +108,25 @@ class MainActivity : AppCompatActivity() {
     /* Function to set the button conditions, if Fall button is pushed
     or the current hold less than 9, grey out the Climb button.
     The Fall button is greyed out when it is pushed once or the current hold is not within 0 and 9
-     */
+    */
     private fun updateButtonStates() {
         climbButton.isEnabled = !hasFallen && currentHold < 9
         fallButton.isEnabled = currentHold > 0 && currentHold < 9 && !hasFallen
     }
 
-    // Function to update Score
-    private fun updateScore() {
-        score = calculateScore()
+    // Output Score
+    private fun updateScoreDisplay() {
         scoreText.text = "Score: $score"
+    }
+
+    private fun updateBackgroundColor() {
+        val color = when (currentHold) {
+            0 -> Color.WHITE
+            in 1..3 -> Color.rgb(173, 216, 230)  // Light blue
+            in 4..6 -> Color.rgb(144, 238, 144)  // Light green
+            in 7..9 -> Color.rgb(255, 182, 193)  // Light red
+            else -> Color.WHITE
+        }
+        findViewById<android.view.View>(R.id.main).setBackgroundColor(color)
     }
 }
