@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.util.Locale
+import android.util.Log
 
 class MainActivity : AppCompatActivity() {
     private val KEY_CURRENT_HOLD = "current_hold"
@@ -25,14 +26,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fallButton: Button
     private var isEnglish = true
 
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "onCreate called")
+        
+        super.onCreate(savedInstanceState)
+        
         // Restore language preference if it exists
         savedInstanceState?.let {
             isEnglish = it.getBoolean(KEY_LANGUAGE, true)
+            Log.d(TAG, "Restored language preference: isEnglish=$isEnglish")
             setLocale(if (isEnglish) "en" else "vi")
         }
         
-        super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -63,6 +72,7 @@ class MainActivity : AppCompatActivity() {
             if (!hasFallen && currentHold < 9) {
                 currentHold++
                 score = calculateScore()
+                Log.d(TAG, "Climbed to hold $currentHold, new score: $score")
                 updateScoreDisplay()
                 updateButtonStates()
                 updateBackgroundColor()
@@ -74,8 +84,8 @@ class MainActivity : AppCompatActivity() {
             if (currentHold > 0 && currentHold < 9 && !hasFallen) {
                 hasFallen = true
                 score = calculateScore()
-                //If score less than 3 then reduce it to 0 else just deduct 3 from it
                 score = if (score < 3) 0 else score - 3
+                Log.d(TAG, "Fell from hold $currentHold, new score: $score")
                 updateScoreDisplay()
                 updateButtonStates()
                 updateBackgroundColor()
@@ -87,6 +97,7 @@ class MainActivity : AppCompatActivity() {
             currentHold = 0
             hasFallen = false
             score = 0
+            Log.d(TAG, "Game reset")
             updateScoreDisplay()
             updateButtonStates()
             updateBackgroundColor()
@@ -95,6 +106,7 @@ class MainActivity : AppCompatActivity() {
         //Function to switch between different languages
         languageButton.setOnClickListener {
             isEnglish = !isEnglish
+            Log.d(TAG, "Language changed to: ${if (isEnglish) "English" else "Vietnamese"}")
             setLocale(if (isEnglish) "en" else "vi")
             recreate()
         }
@@ -110,6 +122,7 @@ class MainActivity : AppCompatActivity() {
         outState.putBoolean(KEY_HAS_FALLEN, hasFallen)
         outState.putInt(KEY_SCORE, score)
         outState.putBoolean(KEY_LANGUAGE, isEnglish)
+        Log.d(TAG, "Saved instance state - Hold: $currentHold, Fallen: $hasFallen, Score: $score, IsEnglish: $isEnglish")
     }
 
     // Function to calculate score based on the current hold
@@ -133,6 +146,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateButtonStates() {
         climbButton.isEnabled = !hasFallen && currentHold < 9
         fallButton.isEnabled = currentHold > 0 && currentHold < 9 && !hasFallen
+        Log.d(TAG, "Buttons updated - Climb: ${climbButton.isEnabled}, Fall: ${fallButton.isEnabled}")
     }
 
     // Output Score
@@ -150,6 +164,7 @@ class MainActivity : AppCompatActivity() {
             else -> Color.WHITE
         }
         findViewById<android.view.View>(R.id.main).setBackgroundColor(color)
+        Log.d(TAG, "Background color updated for hold: $currentHold")
     }
 
     //Function to set languages
