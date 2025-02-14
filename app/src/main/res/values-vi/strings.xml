@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Climber</string>
+    <string name="score_label">Điểm: </string>
+    <string name="button_climb">Leo</string>
+    <string name="button_fall">Té</string>
+    <string name="button_reset">Lại</string>
+    <string name="button_language">EN/VN</string>
+</resources> 

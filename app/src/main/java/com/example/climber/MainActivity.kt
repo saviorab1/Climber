@@ -1,5 +1,6 @@
 package com.example.climber
 
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Button
@@ -8,10 +9,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     private val KEY_CURRENT_HOLD = "current_hold"
     private val KEY_HAS_FALLEN = "has_fallen"
+    private val KEY_SCORE = "score"
+    private val KEY_LANGUAGE = "language"
     
     private var score = 0
     private var currentHold = 0
@@ -19,8 +23,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var scoreText: TextView
     private lateinit var climbButton: Button
     private lateinit var fallButton: Button
+    private var isEnglish = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Restore language preference if it exists
+        savedInstanceState?.let {
+            isEnglish = it.getBoolean(KEY_LANGUAGE, true)
+            setLocale(if (isEnglish) "en" else "vi")
+        }
+        
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
@@ -35,12 +46,13 @@ class MainActivity : AppCompatActivity() {
         climbButton = findViewById(R.id.climb)
         fallButton = findViewById(R.id.fall)
         val resetButton = findViewById<Button>(R.id.reset)
+        val languageButton = findViewById<Button>(R.id.language)
 
         // Restore state after rotation
         savedInstanceState?.let { bundle ->
             currentHold = bundle.getInt(KEY_CURRENT_HOLD, 0)
             hasFallen = bundle.getBoolean(KEY_HAS_FALLEN, false)
-            score = calculateScore()
+            score = bundle.getInt(KEY_SCORE, 0)
             updateScoreDisplay()
             updateButtonStates()
             updateBackgroundColor()
@@ -80,6 +92,13 @@ class MainActivity : AppCompatActivity() {
             updateBackgroundColor()
         }
 
+        //Function to switch between different languages
+        languageButton.setOnClickListener {
+            isEnglish = !isEnglish
+            setLocale(if (isEnglish) "en" else "vi")
+            recreate()
+        }
+
         updateButtonStates()
         updateBackgroundColor()
     }
@@ -89,6 +108,8 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         outState.putInt(KEY_CURRENT_HOLD, currentHold)
         outState.putBoolean(KEY_HAS_FALLEN, hasFallen)
+        outState.putInt(KEY_SCORE, score)
+        outState.putBoolean(KEY_LANGUAGE, isEnglish)
     }
 
     // Function to calculate score based on the current hold
@@ -116,9 +137,10 @@ class MainActivity : AppCompatActivity() {
 
     // Output Score
     private fun updateScoreDisplay() {
-        scoreText.text = "Score: $score"
+        scoreText.text = "${getString(R.string.score_label)}$score"
     }
 
+    //Function to update background color based on current hold
     private fun updateBackgroundColor() {
         val color = when (currentHold) {
             0 -> Color.WHITE
@@ -128,5 +150,14 @@ class MainActivity : AppCompatActivity() {
             else -> Color.WHITE
         }
         findViewById<android.view.View>(R.id.main).setBackgroundColor(color)
+    }
+
+    //Function to set languages
+    private fun setLocale(languageCode: String) {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+        val config = Configuration()
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }

@@ -1,3 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Climber</string>
+    <string name="score_label">Score: </string>
+    <string name="button_climb">Climb</string>
+    <string name="button_fall">Fall</string>
+    <string name="button_reset">Reset</string>
+    <string name="button_language">EN/VN</string>
 </resources>
